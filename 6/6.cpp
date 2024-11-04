@@ -4,8 +4,8 @@
 using namespace std;
 
 bool gameOver;
-const int width = 20;
-const int height = 20;
+const int width = 40;
+const int height = 40;
 int x, y, fruitx, fruity, score;
 enum edirection {STOP =0, LEFT,RIGHT,UP,DOWN};
 edirection dir;
@@ -71,8 +71,11 @@ void input()
 		}
 	}
 }
-void logic(){
-	switch(dir){
+void logic() {
+	int prevX = x;
+	int prevY = y;
+
+	switch (dir) {
 	case LEFT:
 		x--;
 		break;
@@ -85,8 +88,20 @@ void logic(){
 	case DOWN:
 		y++;
 		break;
-}
+	default:
+		break;
+	}
 
+	if (x >= width) x = 0;
+	else if (x < 0) x = width - 1;
+	if (y >= height) y = 0;
+	else if (y < 0) y = height - 1;
+
+	if (x == fruitx && y == fruity) {
+		score += 10;
+		fruitx = rand() % width;
+		fruity = rand() % height;
+	}
 }
 int main()
 {
