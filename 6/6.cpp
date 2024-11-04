@@ -1,5 +1,8 @@
 ﻿#include <iostream>
 #include <conio.h>
+#include <windows.h>
+#include <chrono>
+#include <thread>
 
 using namespace std;
 
@@ -9,6 +12,9 @@ const int height = 40;
 int x, y, fruitx, fruity, score;
 enum edirection {STOP =0, LEFT,RIGHT,UP,DOWN};
 edirection dir;
+
+HANDLE console;
+CHAR_INFO consoleBuffer[height][width];
 
 
 void setup()
@@ -20,34 +26,32 @@ void setup()
 	fruitx = rand() % width;
 	fruitx = rand() % height;
 	score = 0;
+
+	console = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
+	SetConsoleActiveScreenBuffer(console);
 }
 void draw()
 {
-	system("cls");
-	for (int i = 0; i < width + 1; i++)
-		cout << "#";
-	cout << endl;
-
 	for (int i = 0; i < height; i++) {
 		for (int j = 0; j < width; j++) {
-			if (j == 0 || j == width - 1)
-				cout << "#";
-			if (i == y && j == x)
-				cout << "0";
+			if (i == 0 || i == height - 1 || j == 0 || j == width - 1)
+				consoleBuffer[i][j].Char.AsciiChar = '#';
+			else if (i == y && j == x)
+				consoleBuffer[i][j].Char.AsciiChar = '0';
 			else if (i == fruity && j == fruitx)
-				cout << "F";
+				consoleBuffer[i][j].Char.AsciiChar = 'F';
 			else
-			cout << " ";
-		}
-		cout << endl;
-	}
-		
+				consoleBuffer[i][j].Char.AsciiChar = ' ';
 
-	for (int i = 0; i < width + 1; i++)
-		cout << "#";
-	cout << endl;
-	
+			consoleBuffer[i][j].Attributes = FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_RED;
+		}
+	}
+
+	SMALL_RECT writeArea = { 0, 0, width - 1, height - 1 };
+	WriteConsoleOutput(console, (CHAR_INFO*)consoleBuffer, { width, height }, { 0, 0 }, &writeArea);
 }
+	
+
 void input()
 {
 	if (_kbhit()) {
@@ -110,6 +114,7 @@ int main()
 		draw();
 		input();
 		logic();
+		this_thread::sleep_for(chrono::milliseconds(50));
 	}
 
 	return 0;
