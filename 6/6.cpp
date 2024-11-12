@@ -16,7 +16,14 @@ edirection dir;
 HANDLE console;
 CHAR_INFO consoleBuffer[height][width];
 
-
+std::pair<int, int> generate_random_position(int width, int height, int x = -1, int y = -1) {
+	int newX, newY;
+	do {
+		newX = rand() % (width - 2) + 1;  // Избегаем границ
+		newY = rand() % (height - 2) + 1; // Избегаем границ
+	} while (newX == x && newY == y);  // Убедимся, что новая позиция отличается от переданной
+	return std::make_pair(newX, newY);
+}
 void setup()
 {
 	gameOver = false;
@@ -24,8 +31,34 @@ void setup()
 	x = width / 2 - 1;
 	y = height / 2 - 1;
 	fruitx = rand() % width;
-	fruitx = rand() % height;
+	fruity = rand() % height;
 	score = 0;
+	
+	srand(time(0));  // Инициализация генератора случайных чисел
+	gameOver = false;
+	dir = STOP;
+
+	// Случайная начальная позиция для змеи
+	auto snakePos = generate_random_position(width, height);
+	x = snakePos.first;
+	y = snakePos.second;
+
+	// Случайная позиция для фрукта, отличная от позиции змеи
+	auto fruitPos = generate_random_position(width, height, x, y);
+	fruitx = fruitPos.first;
+	fruity = fruitPos.second;
+
+	score = 0;
+
+	console = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
+	if (console == INVALID_HANDLE_VALUE) {
+		cerr << "CreateConsoleScreenBuffer failed - (" << GetLastError() << ")" << endl;
+		exit(1);
+	}
+	if (!SetConsoleActiveScreenBuffer(console)) {
+		cerr << "SetConsoleActiveScreenBuffer failed - (" << GetLastError() << ")" << endl;
+		exit(1);
+	}
 
 	console = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
 	SetConsoleActiveScreenBuffer(console);
@@ -105,6 +138,12 @@ void logic() {
 		score += 10;
 		fruitx = rand() % width;
 		fruity = rand() % height;
+	}
+	if (x == fruitx && y == fruity) {
+		score += 10;
+		auto newFruitPos = generate_random_position(width, height, x, y);
+		fruitx = newFruitPos.first;
+		fruity = newFruitPos.second;
 	}
 }
 int main()
