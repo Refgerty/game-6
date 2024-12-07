@@ -10,7 +10,7 @@ using namespace std;
 bool gameOver;
 const int width = 40; // ширина iгрового поля
 const int height = 40; //высота iгрового поля
-int x, y, fruitx, fruity, score; //координати змiйки та фрукта та очки гри
+int x, y, fruitx, fruity, score, enemyx, enemyy; //координати змiйки та фрукта та очки гри
 enum edirection { STOP = 0, LEFT, RIGHT, UP, DOWN }; // напрям руху
 enum GameMode { CONTINUOUS, STEP_BY_STEP }; // iгровi режими
 GameMode currentMode; // текущiй режим
@@ -60,6 +60,10 @@ void setup()
     fruitx = fruitPos.first;
     fruity = fruitPos.second;
 
+    auto enemyPos = generate_random_position(width, height, x, y);
+    enemyx = enemyPos.first;
+    enemyy = enemyPos.second;
+
     score = 0; // скидання ігрових очок
     //консльний буфер
     console = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
@@ -83,6 +87,8 @@ void draw()
                 consoleBuffer[i][j].Char.AsciiChar = '0';
             else if (i == fruity && j == fruitx)
                 consoleBuffer[i][j].Char.AsciiChar = 'F';
+            else if (i == enemyy && j == enemyx)
+                consoleBuffer[i][j].Char.AsciiChar = 'E';
             else
                 consoleBuffer[i][j].Char.AsciiChar = ' ';
 
@@ -155,12 +161,18 @@ void logic() {
         auto newFruitPos = generate_random_position(width, height, x, y);
         fruitx = newFruitPos.first;
         fruity = newFruitPos.second;
+    if (x == enemyx && y == enemyy) {
+        score -= 10;
+        auto newEnemyPos = generate_random_position(width, height, x, y);
+        enemyx = newEnemyPos.first;
+        enemyy = newEnemyPos.second;
+    }
     }
 }
 
 int main()
 {
-    while (true) { // основний ігровий цикл
+    while (true) { 
         currentMode = show_menu(); // показ меню
         setup(); // наллаштунок гри
         while (!gameOver) { // цикл гри
